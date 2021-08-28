@@ -659,20 +659,20 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt absPartIdx, Bool isMu
         predIdx[j] = i;
       }
     }
-    m_pcBinIf->encodeBin((predIdx[j] != -1)? 1 : 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+    m_pcBinIf->encodeBin((predIdx[j] != -1)? 1 : 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );// MPM?1:0
   }
   for (j=0;j<partNum;j++)
-  {
-    if(predIdx[j] != -1)
+  {	
+    if(predIdx[j] != -1)//mpm
     {
-      m_pcBinIf->encodeBinEP( predIdx[j] ? 1 : 0 );
+      m_pcBinIf->encodeBinEP( predIdx[j] ? 1 : 0 ); //MPM[0]?1:0;
       if (predIdx[j])
       {
         m_pcBinIf->encodeBinEP( predIdx[j]-1 );
       }
     }
     else
-    {
+    { //sort
       if (preds[j][0] > preds[j][1])
       {
         std::swap(preds[j][0], preds[j][1]);
@@ -685,7 +685,7 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt absPartIdx, Bool isMu
       {
         std::swap(preds[j][1], preds[j][2]);
       }
-      for(Int i = (Int(NUM_MOST_PROBABLE_MODES) - 1); i >= 0; i--)
+      for(Int i = (Int(NUM_MOST_PROBABLE_MODES) - 1); i >= 0; i--)// reduce bits for mode
       {
         dir[j] = dir[j] > preds[j][i] ? dir[j] - 1 : dir[j];
       }
