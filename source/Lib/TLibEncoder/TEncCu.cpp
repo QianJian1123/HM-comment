@@ -1504,7 +1504,7 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU *&rpcBestCU,
                                 DEBUG_STRING_FN_DECLARE(sDebug) )
 {
   DEBUG_STRING_NEW(sTest)
-
+	
   if(getFastDeltaQp())
   {
     const TComSPS &sps=*(rpcTempCU->getSlice()->getSPS());
@@ -1516,21 +1516,22 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU *&rpcBestCU,
   }
 
   UInt uiDepth = rpcTempCU->getDepth( 0 );
-
+  //初始化CU的预测信息，即设置为帧内模式，和对应的划分。
   rpcTempCU->setSkipFlagSubParts( false, 0, uiDepth );
-
   rpcTempCU->setPartSizeSubParts( eSize, 0, uiDepth );
   rpcTempCU->setPredModeSubParts( MODE_INTRA, 0, uiDepth );
   rpcTempCU->setChromaQpAdjSubParts( rpcTempCU->getCUTransquantBypass(0) ? 0 : m_cuChromaQpOffsetIdxPlus1, 0, uiDepth );
 
   Pel resiLuma[NUMBER_OF_STORED_RESIDUAL_TYPES][MAX_CU_SIZE * MAX_CU_SIZE];
 
+  // 这里进行实际的帧内预测（亮度）
   m_pcPredSearch->estIntraPredLumaQT( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], resiLuma DEBUG_STRING_PASS_INTO(sTest) );
-
+  //疑问：这里对亮度重建值进行了拷贝，后面为什么不对色度分量的重建值进行拷贝？
+//个人认为，这里并不是将重建值保存，而是作为色度分量的参考信息
   m_ppcRecoYuvTemp[uiDepth]->copyToPicComponent(COMPONENT_Y, rpcTempCU->getPic()->getPicYuvRec(), rpcTempCU->getCtuRsAddr(), rpcTempCU->getZorderIdxInCtu() );
 
   if (rpcBestCU->getPic()->getChromaFormat()!=CHROMA_400)
-  {
+  {// 这里进行实际的帧内预测（色度）
     m_pcPredSearch->estIntraPredChromaQT( rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], resiLuma DEBUG_STRING_PASS_INTO(sTest) );
   }
 
@@ -1540,7 +1541,7 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU *&rpcBestCU,
   {
     m_pcEntropyCoder->encodeCUTransquantBypassFlag( rpcTempCU, 0,          true );
   }
-
+  // 进行熵编码，得到最优模式下的比特代价等信息
   m_pcEntropyCoder->encodeSkipFlag ( rpcTempCU, 0,          true );
   m_pcEntropyCoder->encodePredMode( rpcTempCU, 0,          true );
   m_pcEntropyCoder->encodePartSize( rpcTempCU, 0, uiDepth, true );
@@ -1562,6 +1563,7 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU *&rpcBestCU,
 
   xCheckDQP( rpcTempCU );
 
+  // 更新最优模式信息和数据
   xCheckBestMode(rpcBestCU, rpcTempCU, uiDepth DEBUG_STRING_PASS_INTO(sDebug) DEBUG_STRING_PASS_INTO(sTest));
 }
 

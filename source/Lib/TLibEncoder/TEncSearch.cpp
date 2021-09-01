@@ -2212,6 +2212,8 @@ TEncSearch::estIntraPredLumaQT(TComDataCU* pcCU,
   const UInt         uiInitTrDepth         = pcCU->getPartitionSize(0) == SIZE_2Nx2N ? 0 : 1;
   const UInt         uiNumPU               = 1<<(2*uiInitTrDepth);
   const UInt         uiQNumParts           = pcCU->getTotalNumPart() >> 2;
+  //?
+
   const UInt         uiWidthBit            = pcCU->getIntraSizeIdx(0);
   const ChromaFormat chFmt                 = pcCU->getPic()->getChromaFormat();
   const UInt         numberValidComponents = getNumberValidComponents(chFmt);
